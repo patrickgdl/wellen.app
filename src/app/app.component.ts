@@ -34,8 +34,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   minutes = '00';
   seconds = '00';
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {}
 
@@ -52,10 +51,10 @@ export class AppComponent implements AfterViewInit, OnInit {
       barWidth: 2,
       barHeight: 2,
       barSpacing: 7,
-      barColor: '#cafdff',
+      barColor: '#FE4365',
       shadowBlur: 20,
-      shadowColor: '#ffffff',
-      font: ['12px', 'Helvetica']
+      shadowColor: '#FE4365',
+      font: ['12px', 'Arial']
     };
 
     this._createVisualizer();
@@ -118,10 +117,17 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   loadSound() {
-    this.canvasCtx.fillText('Loading...', this.canvasEl.width / 2 + 10, this.canvasEl.height / 2);
+    this.canvasCtx.fillText('Carregando...', this.canvasEl.width / 2 + 10, this.canvasEl.height / 2);
 
-    this.http.get<ArrayBuffer>(this.audioSrc).subscribe(response => {
-      this.audioCtx.decodeAudioData(response, this.playSound(response), this.onError(response));
+    this.http.get(this.audioSrc, { responseType: 'arraybuffer' }).subscribe(response => {
+      this.audioCtx
+        .decodeAudioData(response)
+        .then(audioBuff => {
+          this.playSound(audioBuff);
+        })
+        .catch(error => {
+          this.onError(error);
+        });
     });
   }
 
@@ -134,6 +140,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     this.sourceNode.buffer = buffer;
     this.sourceNode.start(0);
+
     this.resetTimer();
     this.startTimer();
     this.renderFrame();
@@ -172,34 +179,35 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     this.canvasCtx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
 
-    this.renderTime();
-    this.renderText();
-    this.renderByStyleType();
+    this._renderTime();
+    this._renderText();
+    this._renderByStyleType();
   }
 
-  renderText() {
+  private _renderText() {
     const cx = this.canvasEl.width / 2;
     const cy = this.canvasEl.height / 2;
     const correction = 10;
 
     this.canvasCtx.textBaseline = 'top';
-    this.canvasCtx.fillText('by ' + this.authorAttr, cx + correction, cy);
+    this.canvasCtx.fillText('por ' + this.authorAttr, cx + correction, cy);
     this.canvasCtx.font = parseInt(this.canvasStyle.font[0], 10) + 8 + 'px ' + this.canvasStyle.font[1];
     this.canvasCtx.textBaseline = 'bottom';
     this.canvasCtx.fillText(this.titleAttr, cx + correction, cy);
     this.canvasCtx.font = this.canvasStyle.font.join(' ');
   }
 
-  renderTime() {
+  private _renderTime() {
     const time = this.minutes + ':' + this.seconds;
     this.canvasCtx.fillText(time, this.canvasEl.width / 2 + 10, this.canvasEl.height / 2 + 40);
   }
 
-  renderByStyleType() {
-    return this[TYPE[this.canvasStyle.style]]();
+  private _renderByStyleType() {
+    // return this[TYPE[this.canvasStyle.style]]();
+    return this._renderLounge();
   }
 
-  renderLounge() {
+  private _renderLounge() {
     const cx = this.canvasEl.width / 2;
     const cy = this.canvasEl.height / 2;
     const radius = 140;
