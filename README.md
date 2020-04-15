@@ -1,5 +1,7 @@
 # Wellen
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4d8544b9-1e9e-4301-b6da-6f1d50fb7ba0/deploy-status)](https://app.netlify.com/sites/wellen/deploys)
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.0.3.
 
 ## Development server
