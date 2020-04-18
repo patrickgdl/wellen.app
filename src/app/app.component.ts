@@ -31,8 +31,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   interval = null;
   isPlaying = false;
   duration = 0;
-  minutes = '00';
-  seconds = '00';
+  minutes: string | number = '00';
+  seconds: string | number = '00';
 
   constructor(private http: HttpClient) {}
 
@@ -105,10 +105,16 @@ export class AppComponent implements AfterViewInit, OnInit {
     }.bind(this);
   }
 
+  /**
+   * Set current media source url.
+   */
   setMediaSource() {
     this.audioSrc = this.audioEl.getAttribute('src');
   }
 
+  /**
+   * Set canvas gradient color and styles.
+   */
   setCanvasStyles() {
     this.gradient = this.canvasCtx.createLinearGradient(0, 0, 0, 300);
     this.gradient.addColorStop(1, this.canvasStyle.barColor);
@@ -120,6 +126,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.canvasCtx.textAlign = 'center';
   }
 
+  /**
+   * Play click event.
+   */
   onClick() {
     if (!this.isPlaying) {
       return this.audioCtx.state === 'suspended' ? this.playSound() : this.loadSound();
@@ -128,6 +137,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     }
   }
 
+  /**
+   * Load sound file.
+   */
   loadSound() {
     this.canvasCtx.fillText('Carregando...', this.canvasEl.width / 2 + 10, this.canvasEl.height / 2);
 
@@ -143,6 +155,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     });
   }
 
+  /**
+   * Play sound from the given buffer.
+   */
   playSound(buffer?: AudioBuffer) {
     this.isPlaying = true;
 
@@ -158,13 +173,19 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.renderFrame();
   }
 
+  /**
+   * Pause current sound.
+   */
   pauseSound() {
     this.audioCtx.suspend();
     this.isPlaying = false;
   }
 
+  /**
+   * Start playing timer.
+   */
   startTimer() {
-    this.interval = setInterval(function () {
+    this.interval = setInterval(() => {
       if (this.isPlaying) {
         const now = new Date(this.duration);
         const min = now.getHours();
@@ -176,15 +197,24 @@ export class AppComponent implements AfterViewInit, OnInit {
     }, 1000);
   }
 
+  /**
+   * Reset time counter.
+   */
   resetTimer() {
     const time = new Date(0, 0);
     this.duration = time.getTime();
   }
 
+  /**
+   * On audio data stream error fn.
+   */
   onError(e) {
     console.log('Error decoding audio file. -- ', e);
   }
 
+  /**
+   * Render frame on canvas.
+   */
   renderFrame() {
     requestAnimationFrame(this.renderFrame.bind(this));
     this.analyser.getByteFrequencyData(this.frequencyData);
@@ -196,6 +226,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     this._renderByStyleType();
   }
 
+  /**
+   * Render audio author and title.
+   */
   private _renderText() {
     const cx = this.canvasEl.width / 2;
     const cy = this.canvasEl.height / 2;
@@ -209,16 +242,25 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.canvasCtx.font = this.canvasStyle.font.join(' ');
   }
 
+  /**
+   * Render audio time.
+   */
   private _renderTime() {
     const time = this.minutes + ':' + this.seconds;
     this.canvasCtx.fillText(time, this.canvasEl.width / 2 + 10, this.canvasEl.height / 2 + 40);
   }
 
+  /**
+   * Render frame by style type.
+   */
   private _renderByStyleType() {
     // return this[TYPE[this.canvasStyle.style]]();
     return this._renderLounge();
   }
 
+  /**
+   * Render lounge style type.
+   */
   private _renderLounge() {
     const cx = this.canvasEl.width / 2;
     const cy = this.canvasEl.height / 2;
@@ -245,6 +287,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     }
   }
 
+  /**
+   * Create visualizer fn instances.
+   */
   private _createVisualizer() {
     this.setContext();
     this.setAnalyser();
