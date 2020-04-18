@@ -1,7 +1,8 @@
+import { DrawerService } from './drawer.service';
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SceneService {
   private inProcess = false;
@@ -9,7 +10,7 @@ export class SceneService {
   minSize = 740;
   optimiseHeight: 982;
 
-  constructor(private framerService) {}
+  constructor(private drawerService: DrawerService) {}
 
   init() {
     this.canvasConfigure();
@@ -45,7 +46,7 @@ export class SceneService {
 
   initHandlers() {
     var that = this;
-    window.onresize = function() {
+    window.onresize = function () {
       that.canvasConfigure();
       Framer.configure();
       that.render();
@@ -54,7 +55,7 @@ export class SceneService {
 
   render() {
     var that = this;
-    requestAnimationFrame(function() {
+    requestAnimationFrame(function () {
       that.clear();
       that.draw();
       if (this.inProcess) {

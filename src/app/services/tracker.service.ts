@@ -14,7 +14,7 @@ export class TrackerService {
   animationCount = 10;
   pressButton = false;
 
-  constructor(private player: PlayerService, private scene: SceneService) { }
+  constructor(private playerService: PlayerService, private sceneService: SceneService) { }
 
   init(scene) {
       this.context = scene.context;
@@ -24,7 +24,7 @@ export class TrackerService {
   initHandlers() {
       var that = this;
 
-      this.scene.canvas.addEventListener('mousedown', function (e) {
+      this.sceneService.canvas.addEventListener('mousedown', function(e) {
           if (that.isInsideOfSmallCircle(e) || that.isOusideOfBigCircle(e)) {
               return;
           }
@@ -34,46 +34,46 @@ export class TrackerService {
           that.calculateAngle(e, true);
       });
 
-      window.addEventListener('mouseup', function () {
+      window.addEventListener('mouseup', function() {
           if (!that.pressButton) {
               return;
           }
-          var id = setInterval(function () {
+          const id = setInterval(function() {
               if (!that.animatedInProgress) {
                   that.pressButton = false;
                   this._player.context.currentTime = that.angle / (2 * Math.PI) * this._player.source.buffer.duration;
                   clearInterval(id);
               }
-          } 100);
+          }, 100);
       });
 
       window.addEventListener('mousemove', function(e) {
           if (that.animatedInProgress) {
               return;
           }
-          if (that.pressButton && that.scene.inProcess()) {
+          if (that.pressButton && that.sceneService.inProcess()) {
               that.calculateAngle(e);
           }
       });
   }
 
   isInsideOfSmallCircle(e) {
-      var x = Math.abs(e.pageX - this.scene.cx - this.scene.coord.left);
-      var y = Math.abs(e.pageY - this.scene.cy - this.scene.coord.top);
-      return Math.sqrt(x * x + y * y) < this.scene.radius - 3 * this.innerDelta;
+      const x = Math.abs(e.pageX - this.sceneService.cx - this.sceneService.coord.left);
+      const y = Math.abs(e.pageY - this.sceneService.cy - this.sceneService.coord.top);
+      return Math.sqrt(x * x + y * y) < this.sceneService.radius - 3 * this.innerDelta;
   }
 
   isOusideOfBigCircle(e) {
-      return Math.abs(e.pageX - this.scene.cx - this.scene.coord.left) > this.scene.radius ||
-              Math.abs(e.pageY - this.scene.cy - this.scene.coord.top) > this.scene.radius;
+      return Math.abs(e.pageX - this.sceneService.cx - this.sceneService.coord.left) > this.sceneService.radius ||
+              Math.abs(e.pageY - this.sceneService.cy - this.sceneService.coord.top) > this.sceneService.radius;
   }
 
   draw() {
-      if (!this.player.source.buffer) {
+      if (!this.playerService.source.buffer) {
           return;
       }
       if (!this.pressButton) {
-          this.angle = this.player.context.currentTime / this.player.source.buffer.duration * 2 * Math.PI || 0;
+          this.angle = this.playerService.context.currentTime / this.playerService.source.buffer.duration * 2 * Math.PI || 0;
       }
       this.drawArc();
   }
@@ -84,10 +84,10 @@ export class TrackerService {
       this.context.beginPath();
       this.context.lineWidth = this.lineWidth;
 
-      this.r = this.scene.radius - (this.innerDelta + this.lineWidth / 2);
+      this.r = this.sceneService.radius - (this.innerDelta + this.lineWidth / 2);
       this.context.arc(
-              this.scene.radius + this.scene.padding,
-              this.scene.radius + this.scene.padding,
+              this.sceneService.radius + this.sceneService.padding,
+              this.sceneService.radius + this.sceneService.padding,
               this.r, 0, this.angle, false
       );
       this.context.stroke();
@@ -98,8 +98,8 @@ export class TrackerService {
       this.animatedInProgress = animatedInProgress;
       this.mx = e.pageX;
       this.my = e.pageY;
-      this.angle = Math.atan((this.my - this.scene.cy - this.scene.coord.top) / (this.mx - this.scene.cx - this.scene.coord.left));
-      if (this.mx < this.scene.cx + this.scene.coord.left) {
+      this.angle = Math.atan((this.my - this.sceneService.cy - this.sceneService.coord.top) / (this.mx - this.sceneService.cx - this.sceneService.coord.left));
+      if (this.mx < this.sceneService.cx + this.sceneService.coord.left) {
           this.angle = Math.PI + this.angle;
       }
       if (this.angle < 0) {
@@ -114,10 +114,11 @@ export class TrackerService {
 
   startAnimation() {
       var that = this;
-      var angle = this.angle;
-      var l = Math.abs(this.angle) - Math.abs(this.prevAngle);
-      var step = l / this.animationCount, i = 0;
-      var f = function () {
+      const angle = this.angle;
+      const l = Math.abs(this.angle) - Math.abs(this.prevAngle);
+      const step = l / this.animationCount;
+      const i = 0;
+      const f = function () {
           that.angle += step;
           if (++i === that.animationCount) {
               that.angle = angle;

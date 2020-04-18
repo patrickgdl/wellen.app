@@ -4,20 +4,20 @@ import { Injectable } from '@angular/core';
 import { DrawerService } from './drawer.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PlayerService {
-  constructor(private http: HttpClient, private drawer: DrawerService) {}
-
   buffer = null;
   duration = 0;
   tracks = [
     {
       artist: 'Kavinsky',
       song: 'Odd Look ft. The Weeknd',
-      url: '//katiebaca.com/tutorial/odd-look.mp3'
-    }
+      url: '//katiebaca.com/tutorial/odd-look.mp3',
+    },
   ];
+
+  constructor(private http: HttpClient, private drawerService: DrawerService) {}
 
   init() {
     window.AudioContext = window.AudioContext; // || window.webkitAudioContext;
@@ -43,10 +43,10 @@ export class PlayerService {
 
       this.initHandlers();
     } catch (e) {
-      this.drawer.setLoadingPercent(1);
+      this.drawerService.setLoadingPercent(1);
     }
 
-    this.drawer.setLoadingPercent(1);
+    this.drawerService.setLoadingPercent(1);
     Scene.init();
   }
 
@@ -55,13 +55,13 @@ export class PlayerService {
     document.querySelector('.song .artist').textContent = track.artist;
     document.querySelector('.song .name').textContent = track.song;
 
-    this.http.get(track.url, { responseType: 'arraybuffer' }).subscribe(response => {
+    this.http.get(track.url, { responseType: 'arraybuffer' }).subscribe((response) => {
       this.audioCtx
         .decodeAudioData(response)
-        .then(audioBuff => {
+        .then((audioBuff) => {
           this.source.buffer = buffer;
         })
-        .catch(error => {
+        .catch((error) => {
           this.onError(error);
         });
     });
@@ -116,7 +116,7 @@ export class PlayerService {
   initHandlers() {
     var that = this;
 
-    this.javascriptNode.onaudioprocess = function() {
+    this.javascriptNode.onaudioprocess = function () {
       this.drawer.frequencyData = new Uint8Array(that.analyser.frequencyBinCount);
       that.analyser.getByteFrequencyData(this.drawer.frequencyData);
     };

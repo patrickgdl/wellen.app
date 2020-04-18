@@ -5,13 +5,13 @@ import { HttpClient } from '@angular/common/http';
 
 const FFT_SIZE = 512;
 const TYPE = {
-  lounge: 'renderLounge'
+  lounge: 'renderLounge',
 };
 
 @Component({
   selector: 'wel-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements AfterViewInit, OnInit {
   audioEl: HTMLAudioElement;
@@ -54,12 +54,15 @@ export class AppComponent implements AfterViewInit, OnInit {
       barColor: '#FE4365',
       shadowBlur: 20,
       shadowColor: '#FE4365',
-      font: ['12px', 'Arial']
+      font: ['12px', 'Arial'],
     };
 
     this._createVisualizer();
   }
 
+  /**
+   * Set current audio context.
+   */
   setContext() {
     try {
       this.audioCtx = new window.AudioContext();
@@ -68,23 +71,32 @@ export class AppComponent implements AfterViewInit, OnInit {
     }
   }
 
+  /**
+   * Set buffer analyser.
+   */
   setAnalyser() {
     this.analyser = this.audioCtx.createAnalyser();
     this.analyser.smoothingTimeConstant = 0.6;
     this.analyser.fftSize = FFT_SIZE;
   }
 
+  /**
+   * Set frequency data.
+   */
   setFrequencyData() {
     this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
   }
 
+  /**
+   * Set source buffer and connect processor and analyser.
+   */
   setBufferSourceNode() {
     this.sourceNode = this.audioCtx.createBufferSource();
     this.sourceNode.loop = true; // loop property
     this.sourceNode.connect(this.analyser);
     this.sourceNode.connect(this.audioCtx.destination);
 
-    this.sourceNode.onended = function() {
+    this.sourceNode.onended = function () {
       clearInterval(this.interval);
       this.sourceNode.disconnect();
       this.resetTimer();
@@ -119,13 +131,13 @@ export class AppComponent implements AfterViewInit, OnInit {
   loadSound() {
     this.canvasCtx.fillText('Carregando...', this.canvasEl.width / 2 + 10, this.canvasEl.height / 2);
 
-    this.http.get(this.audioSrc, { responseType: 'arraybuffer' }).subscribe(response => {
+    this.http.get(this.audioSrc, { responseType: 'arraybuffer' }).subscribe((response) => {
       this.audioCtx
         .decodeAudioData(response)
-        .then(audioBuff => {
+        .then((audioBuff) => {
           this.playSound(audioBuff);
         })
-        .catch(error => {
+        .catch((error) => {
           this.onError(error);
         });
     });
@@ -152,7 +164,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   startTimer() {
-    this.interval = setInterval(function() {
+    this.interval = setInterval(function () {
       if (this.isPlaying) {
         const now = new Date(this.duration);
         const min = now.getHours();
