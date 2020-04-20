@@ -96,13 +96,13 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.sourceNode.connect(this.analyser);
     this.sourceNode.connect(this.audioCtx.destination);
 
-    this.sourceNode.onended = function () {
+    this.sourceNode.onended = () => {
       clearInterval(this.interval);
       this.sourceNode.disconnect();
       this.resetTimer();
       this.isPlaying = false;
-      this.sourceNode = this.ctx.createBufferSource();
-    }.bind(this);
+      this.sourceNode = this.audioCtx.createBufferSource();
+    };
   }
 
   /**

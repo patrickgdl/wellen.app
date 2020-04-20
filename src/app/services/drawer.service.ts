@@ -5,20 +5,14 @@ import { Injectable } from '@angular/core';
 })
 export class DrawerService {
   countTicks = 360;
-  frequencyData = [];
+  maxTickSize: number;
+  frequencyData: Uint8Array;
   tickSize = 10;
   PI = 360;
   index = 0;
   loadingAngle = 0;
 
   constructor() {}
-
-  init(scene) {
-    this.canvas = document.querySelector('canvas');
-    this.scene = scene;
-    this.context = scene.context;
-    this.configure();
-  }
 
   configure() {
     this.maxTickSize = this.tickSize * 9 * this.scene.scaleCoef;
@@ -34,11 +28,13 @@ export class DrawerService {
     this.context.save();
     this.context.beginPath();
     this.context.lineWidth = 1;
+
     this.ticks = this.getTicks(this.countTicks, this.tickSize, [0, 90]);
     for (let i = 0, len = this.ticks.length; i < len; ++i) {
       const tick = this.ticks[i];
       this.drawTick(tick.x1, tick.y1, tick.x2, tick.y2);
     }
+
     this.context.restore();
   }
 
@@ -61,7 +57,7 @@ export class DrawerService {
     this.context.stroke();
   }
 
-  setLoadingPercent(percent) {
+  setLoadingPercent(percent: number) {
     this.loadingAngle = percent * 2 * Math.PI;
   }
 
@@ -147,7 +143,7 @@ export class DrawerService {
     return h;
   }
 
-  getTickPoitns(count) {
+  getTickPoitns(count: number) {
     const coords = [];
     const step = this.PI / count;
     for (let deg = 0; deg < this.PI; deg += step) {

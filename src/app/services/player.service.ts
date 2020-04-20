@@ -2,13 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { DrawerService } from './drawer.service';
+import { SceneService } from './scene.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlayerService {
-  buffer = null;
-  duration = 0;
   tracks = [
     {
       artist: 'Kavinsky',
@@ -16,28 +15,40 @@ export class PlayerService {
       url: '//katiebaca.com/tutorial/odd-look.mp3',
     },
   ];
+  firstLaunch = false;
 
-  constructor(private http: HttpClient, private drawerService: DrawerService) {}
+  audioCtx: AudioContext;
+  javascriptNode: ScriptProcessorNode;
+  analyser: AnalyserNode;
+  source: AudioBufferSourceNode;
+  destination: AudioDestinationNode;
+  gainNode: GainNode;
+
+  constructor(private http: HttpClient, private drawerService: DrawerService, private sceneService: SceneService) {}
 
   init() {
-    window.AudioContext = window.AudioContext; // || window.webkitAudioContext;
-    this.context = new AudioContext();
-    this.context.suspend && this.context.suspend();
+    this.audioCtx = new AudioContext();
+    // this.context.suspend && this.context.suspend();
     this.firstLaunch = true;
 
     try {
-      this.javascriptNode = this.context.createScriptProcessor(2048, 1, 1);
-      this.javascriptNode.connect(this.context.destination);
-      this.analyser = this.context.createAnalyser();
+      this.javascriptNode = this.audioCtx.createScriptProcessor(2048, 1, 1);
+      this.javascriptNode.connect(this.audioCtx.destination);
+
+      this.analyser = this.audioCtx.createAnalyser();
       this.analyser.connect(this.javascriptNode);
       this.analyser.smoothingTimeConstant = 0.6;
       this.analyser.fftSize = 2048;
-      this.source = this.context.createBufferSource();
-      this.destination = this.context.destination;
+
+      this.source = this.audioCtx.createBufferSource();
+      this.destination = this.audioCtx.destination;
+
       this.loadTrack(0);
 
-      this.gainNode = this.context.createGain();
+      this.gainNode = this.audioCtx.createGain();
+
       this.source.connect(this.gainNode);
+
       this.gainNode.connect(this.analyser);
       this.gainNode.connect(this.destination);
 
@@ -47,7 +58,7 @@ export class PlayerService {
     }
 
     this.drawerService.setLoadingPercent(1);
-    Scene.init();
+    this.sceneService.init();
   }
 
   loadTrack(index: number) {
@@ -59,12 +70,19 @@ export class PlayerService {
       this.audioCtx
         .decodeAudioData(response)
         .then((audioBuff) => {
-          this.source.buffer = buffer;
+          this.source.buffer = audioBuff;
         })
         .catch((error) => {
           this.onError(error);
         });
     });
+  }
+
+  /**
+   * On audio data stream error fn.
+   */
+  onError(e) {
+    console.log('Error decoding audio file. -- ', e);
   }
 
   nextTrack() {
@@ -88,7 +106,7 @@ export class PlayerService {
   }
 
   play() {
-    this.context.resume && this.context.resume();
+    // this.audioCtx.resume && this.audioCtx.resume();
 
     if (this.firstLaunch) {
       this.source.start();
@@ -97,12 +115,12 @@ export class PlayerService {
   }
 
   stop() {
-    this.context.currentTime = 0;
-    this.context.suspend();
+    // this.audioCtx.currentTime = 0;
+    this.audioCtx.suspend();
   }
 
   pause() {
-    this.context.suspend();
+    this.audioCtx.suspend();
   }
 
   mute() {
@@ -114,11 +132,9 @@ export class PlayerService {
   }
 
   initHandlers() {
-    var that = this;
-
-    this.javascriptNode.onaudioprocess = function () {
-      this.drawer.frequencyData = new Uint8Array(that.analyser.frequencyBinCount);
-      that.analyser.getByteFrequencyData(this.drawer.frequencyData);
+    this.javascriptNode.onaudioprocess = () => {
+      this.drawerService.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+      this.analyser.getByteFrequencyData(this.drawerService.frequencyData);
     };
   }
 }

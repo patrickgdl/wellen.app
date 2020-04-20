@@ -117,7 +117,7 @@ export class TrackerService {
       const angle = this.angle;
       const l = Math.abs(this.angle) - Math.abs(this.prevAngle);
       const step = l / this.animationCount;
-      const i = 0;
+      let i = 0;
       const f = function () {
           that.angle += step;
           if (++i === that.animationCount) {

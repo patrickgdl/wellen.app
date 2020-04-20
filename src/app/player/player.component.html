@@ -1,15 +1,10 @@
 <div class="player">
-  <canvas></canvas>
+  <wel-canvas></wel-canvas>
+
   <div class="song">
     <div class="artist">Kavinsky</div>
     <div class="name">Odd Look ft. The Weeknd</div>
   </div>
-  <div class="playarea">
-    <div class="prevSong" (click)="onPrev()"></div>
-    <div class="play" (click)="onPlay()"></div>
-    <div class="pause" (click)="onPause()"></div>
-    <div class="nextSong" (click)="onNext()"></div>
-  </div>
-  <div class="soundControl" (click)="onMuteOrDesmute()"></div>
-  <div class="time">00:00</div>
+
+  <wel-controls></wel-controls>
 </div>

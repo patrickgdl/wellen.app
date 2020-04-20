@@ -1,0 +1,10 @@
+<div class="playarea">
+  <div class="prevSong" #prevSong (click)="onPrev()"></div>
+  <div class="play" #play (click)="onPlay()" *ngIf="isPlaying"></div>
+  <div class="pause" #pause (click)="onPause()" *ngIf="!isPlaying"></div>
+  <div class="nextSong" #nextSong (click)="onNext()"></div>
+</div>
+
+<div class="soundControl" #soundControl (click)="onMuteOrDesmute()"></div>
+
+<div class="time" #time>00:00</div>
