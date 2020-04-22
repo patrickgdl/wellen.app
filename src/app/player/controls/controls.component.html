@@ -1,7 +1,7 @@
 <div class="playarea">
   <div class="prevSong" (click)="onPrev()"></div>
   <div class="play" (click)="onPlay()" *ngIf="isPlaying"></div>
-  <div class="pause" click)="onPause()" *ngIf="!isPlaying"></div>
+  <div class="pause" (click)="onPause()" *ngIf="!isPlaying"></div>
   <div class="nextSong" (click)="onNext()"></div>
 </div>
 

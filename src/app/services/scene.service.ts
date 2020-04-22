@@ -1,46 +1,38 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Injectable } from '@angular/core';
 
-import { ControlsService } from './../services/controls.service';
-import { DrawerService } from './../services/drawer.service';
-import { TrackerService } from './../services/tracker.service';
+import { ControlsService } from './controls.service';
+import { DrawerService } from './drawer.service';
+import { TrackerService } from './tracker.service';
 
-@Component({
-  selector: 'wel-canvas',
-  templateUrl: './canvas.component.html',
-  styles: [],
-})
-export class CanvasComponent implements OnInit, AfterViewInit {
-  @ViewChild('canvas') public canvas: ElementRef;
+@Injectable()
+export class SceneService {
+  private inProcess = false;
+
+  canvasCtx: CanvasRenderingContext2D;
 
   width: number;
   height: number;
-
-  private inProcess = false;
   padding = 120;
   minSize = 740;
   optimiseHeight: 982;
   scaleCoef: number;
-
   radius: number;
   cx: number;
   cy: number;
-
   coord: DOMRect;
-
-  private canvasCtx: CanvasRenderingContext2D;
 
   constructor(private drawerService: DrawerService, private trackerService: TrackerService, private controlsService: ControlsService) {}
 
-  ngOnInit() {}
+  init(canvasEl: HTMLCanvasElement) {
+    this.canvasConfigure(canvasEl);
+  }
 
-  ngAfterViewInit() {
-    const canvasEl: HTMLCanvasElement = this.canvas.nativeElement;
+  canvasConfigure(canvasEl: HTMLCanvasElement) {
     this.canvasCtx = canvasEl.getContext('2d');
-
     this.canvasCtx.strokeStyle = '#FE4365';
-    canvasEl.height = this.height;
 
     this.calculateSize(canvasEl);
+    this.startRender();
   }
 
   calculateSize(canvasEl: HTMLCanvasElement) {
@@ -61,13 +53,6 @@ export class CanvasComponent implements OnInit, AfterViewInit {
     this.coord = canvasEl.getBoundingClientRect();
   }
 
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event) {
-  //   this.canvasConfigure();
-  //   this.drawerService.configure();
-  //   this.render();
-  // }
-
   render() {
     requestAnimationFrame(() => {
       this.clear();
@@ -84,8 +69,8 @@ export class CanvasComponent implements OnInit, AfterViewInit {
 
   draw() {
     this.drawerService.draw();
-    this.trackerService.draw();
-    this.controlsService.draw();
+    // this.trackerService.draw();
+    // this.controlsService.draw();
   }
 
   startRender() {
@@ -96,18 +81,4 @@ export class CanvasComponent implements OnInit, AfterViewInit {
   stopRender() {
     this.inProcess = false;
   }
-
-  // private onMouseDownEvents(canvasEl: HTMLCanvasElement) {
-  //   fromEvent(canvasEl, 'mousedown')
-  //     .pipe(
-  //       switchMap((e) => {
-  //         return fromEvent(canvasEl, 'mousemove').pipe(
-  //           takeUntil(fromEvent(canvasEl, 'mouseup')),
-  //           takeUntil(fromEvent(canvasEl, 'mouseleave')),
-  //           pairwise() /* Return the previous and last values as array */
-  //         );
-  //       })
-  //     )
-  //     .subscribe((res: [MouseEvent, MouseEvent]) => {});
-  // }
 }

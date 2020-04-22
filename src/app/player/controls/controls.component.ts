@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 
-import { PlayerService } from './../services/player.service';
+import { PlayerService } from '../../services/player.service';
 
 @Component({
   selector: 'wel-controls',

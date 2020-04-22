@@ -2,16 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { DrawerService } from './drawer.service';
+import { SceneService } from './scene.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class PlayerService {
   tracks = [
     {
       artist: 'SAINt JHN & Imanbek Remix',
       song: 'Roses',
-      url: '//assets/audio/roses.mp3',
+      url: '../../assets/audio/roses.mp3',
     },
   ];
   firstLaunch = false;
@@ -23,9 +22,9 @@ export class PlayerService {
   destination: AudioDestinationNode;
   gainNode: GainNode;
 
-  constructor(private http: HttpClient, private drawerService: DrawerService) {}
+  constructor(private http: HttpClient, private drawerService: DrawerService, private sceneService: SceneService) {}
 
-  init() {
+  init(canvasEl: HTMLCanvasElement) {
     this.audioCtx = new AudioContext();
     // this.context.suspend && this.context.suspend();
     this.firstLaunch = true;
@@ -53,10 +52,12 @@ export class PlayerService {
 
       this.initHandlers();
     } catch (e) {
-      this.drawerService.setLoadingPercent(1);
+      // this.drawerService.setLoadingPercent(1);
     }
 
-    this.drawerService.setLoadingPercent(1);
+    // this.drawerService.setLoadingPercent(1);
+
+    this.sceneService.init(canvasEl);
   }
 
   loadTrack(index: number) {
