@@ -9,9 +9,9 @@ import { DrawerService } from './drawer.service';
 export class PlayerService {
   tracks = [
     {
-      artist: 'Kavinsky',
-      song: 'Odd Look ft. The Weeknd',
-      url: '//katiebaca.com/tutorial/odd-look.mp3',
+      artist: 'SAINt JHN & Imanbek Remix',
+      song: 'Roses',
+      url: '//assets/audio/roses.mp3',
     },
   ];
   firstLaunch = false;
