@@ -1,56 +1,53 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 
-import { ControlsService } from '../services/controls.service';
+import { PlayerService } from './../services/player.service';
 
 @Component({
   selector: 'wel-controls',
   templateUrl: './controls.component.html',
-  styles: []
+  styles: [],
 })
 export class ControlsComponent implements AfterViewInit {
-  @ViewChild('play') public playEl: ElementRef;
-  @ViewChild('pause') public pauseEl: ElementRef;
-  @ViewChild('prevSong') public prevEl: ElementRef;
-  @ViewChild('nextSong') public nextEl: ElementRef;
-  @ViewChild('soundControl') public muteEl: ElementRef;
-  @ViewChild('time') public timeEl: ElementRef;
+  @ViewChild('time') public time: ElementRef;
 
   isPlaying = false;
+  isMuted = false;
 
-  constructor(private controls: ControlsService) {}
+  constructor(private playerService: PlayerService) {}
 
   ngAfterViewInit() {
+    const timeEl: HTMLDivElement = this.time.nativeElement;
   }
 
   onPlay() {
     this.isPlaying = true;
-    this.controls.play();
+    this.playerService.play();
   }
 
   onPause() {
     this.isPlaying = false;
-    this.controls.pause();
+    this.playerService.pause();
   }
 
   onPrev() {
-    this.controls.prevTrack();
+    this.playerService.prevTrack();
     this.isPlaying = true;
-    this.controls.play();
+    this.playerService.play();
   }
 
   onNext() {
-    this.controls.nextTrack();
+    this.playerService.nextTrack();
     this.isPlaying = true;
-    this.controls.play();
+    this.playerService.play();
   }
 
-  onMuteOrDesmute() {
-    if (this.muteEl.classList.contains('disable')) {
-      this.muteEl.classList.remove('disable');
-      this.controls.unmute();
+  onMuteOrUnmute() {
+    if (this.isMuted) {
+      this.isMuted = false;
+      this.playerService.unmute();
     } else {
-      this.muteEl.classList.add('disable');
-      this.controls.mute();
+      this.isMuted = true;
+      this.playerService.mute();
     }
   }
 }

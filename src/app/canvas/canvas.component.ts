@@ -1,8 +1,7 @@
-import { ControlsService } from './../services/controls.service';
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
+import { ControlsService } from './../services/controls.service';
 import { DrawerService } from './../services/drawer.service';
-import { PlayerService } from './../services/player.service';
 import { TrackerService } from './../services/tracker.service';
 
 @Component({
@@ -97,4 +96,18 @@ export class CanvasComponent implements OnInit, AfterViewInit {
   stopRender() {
     this.inProcess = false;
   }
+
+  // private onMouseDownEvents(canvasEl: HTMLCanvasElement) {
+  //   fromEvent(canvasEl, 'mousedown')
+  //     .pipe(
+  //       switchMap((e) => {
+  //         return fromEvent(canvasEl, 'mousemove').pipe(
+  //           takeUntil(fromEvent(canvasEl, 'mouseup')),
+  //           takeUntil(fromEvent(canvasEl, 'mouseleave')),
+  //           pairwise() /* Return the previous and last values as array */
+  //         );
+  //       })
+  //     )
+  //     .subscribe((res: [MouseEvent, MouseEvent]) => {});
+  // }
 }

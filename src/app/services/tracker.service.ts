@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
+import { fromEvent } from 'rxjs';
+import { pairwise, switchMap, takeUntil } from 'rxjs/operators';
 
 import { PlayerService } from './player.service';
-import { SceneService } from './scene.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TrackerService {
   innerDelta = 20;
@@ -13,128 +14,129 @@ export class TrackerService {
   angle = 0;
   animationCount = 10;
   pressButton = false;
+  animatedInProgress = false;
 
-  constructor(private playerService: PlayerService, private sceneService: SceneService) { }
+  constructor(private playerService: PlayerService) {}
 
-  init(scene) {
-      this.context = scene.context;
-      this.initHandlers();
-  }
-
-  initHandlers() {
-      var that = this;
-
-      this.sceneService.canvas.addEventListener('mousedown', function(e) {
-          if (that.isInsideOfSmallCircle(e) || that.isOusideOfBigCircle(e)) {
-              return;
+  initHandlers(canvasEl: HTMLCanvasElement) {
+    fromEvent(canvasEl, 'mousedown')
+      .pipe(
+        switchMap((evt: MouseEvent) => {
+          // should be a mouse down event
+          if (this.isInsideOfSmallCircle(evt) || this.isOusideOfBigCircle(evt)) {
+            return;
           }
-          that.prevAngle = that.angle;
-          that.pressButton = true;
-          that.stopAnimation();
-          that.calculateAngle(e, true);
-      });
+          this.prevAngle = this.angle;
+          this.pressButton = true;
+          this.stopAnimation();
+          this.calculateAngle(evt, true);
 
-      window.addEventListener('mouseup', function() {
-          if (!that.pressButton) {
-              return;
+          return fromEvent(canvasEl, 'mousemove').pipe(
+            takeUntil(fromEvent(canvasEl, 'mouseup')),
+            takeUntil(fromEvent(canvasEl, 'mouseleave')),
+            pairwise() /* Return the previous and last values as array */
+          );
+        })
+      )
+      .subscribe((res: [MouseEvent, MouseEvent]) => {
+        // on mouseup event
+        if (!this.pressButton) {
+          return;
+        }
+        const id = setInterval(() => {
+          if (!this.animatedInProgress) {
+            this.pressButton = false;
+            this.playerService.audioCtx.currentTime = (this.angle / (2 * Math.PI)) * this.playerService.source.buffer.duration;
+            clearInterval(id);
           }
-          const id = setInterval(function() {
-              if (!that.animatedInProgress) {
-                  that.pressButton = false;
-                  this._player.context.currentTime = that.angle / (2 * Math.PI) * this._player.source.buffer.duration;
-                  clearInterval(id);
-              }
-          }, 100);
-      });
+        }, 100);
 
-      window.addEventListener('mousemove', function(e) {
-          if (that.animatedInProgress) {
-              return;
-          }
-          if (that.pressButton && that.sceneService.inProcess()) {
-              that.calculateAngle(e);
-          }
+        // should use a mousemove event
+        if (this.animatedInProgress) {
+          return;
+        }
+        if (this.pressButton && this.inProcess()) {
+          this.calculateAngle(res[1], true); // i have manually input true here but dont know if it is right
+        }
       });
   }
 
   isInsideOfSmallCircle(e) {
-      const x = Math.abs(e.pageX - this.sceneService.cx - this.sceneService.coord.left);
-      const y = Math.abs(e.pageY - this.sceneService.cy - this.sceneService.coord.top);
-      return Math.sqrt(x * x + y * y) < this.sceneService.radius - 3 * this.innerDelta;
+    const x = Math.abs(e.pageX - this.cx - this.coord.left);
+    const y = Math.abs(e.pageY - this.cy - this.coord.top);
+    return Math.sqrt(x * x + y * y) < this.radius - 3 * this.innerDelta;
   }
 
   isOusideOfBigCircle(e) {
-      return Math.abs(e.pageX - this.sceneService.cx - this.sceneService.coord.left) > this.sceneService.radius ||
-              Math.abs(e.pageY - this.sceneService.cy - this.sceneService.coord.top) > this.sceneService.radius;
+    return Math.abs(e.pageX - this.cx - this.coord.left) > this.radius || Math.abs(e.pageY - this.cy - this.coord.top) > this.radius;
   }
 
   draw() {
-      if (!this.playerService.source.buffer) {
-          return;
-      }
-      if (!this.pressButton) {
-          this.angle = this.playerService.context.currentTime / this.playerService.source.buffer.duration * 2 * Math.PI || 0;
-      }
-      this.drawArc();
+    if (!this.playerService.source.buffer) {
+      return;
+    }
+    if (!this.pressButton) {
+      this.angle = (this.playerService.audioCtx.currentTime / this.playerService.source.buffer.duration) * 2 * Math.PI || 0;
+    }
+    this.drawArc();
   }
 
   drawArc() {
-      this.context.save();
-      this.context.strokeStyle = 'rgba(254, 67, 101, 0.8)';
-      this.context.beginPath();
-      this.context.lineWidth = this.lineWidth;
+    this.canvasCtx.save();
+    this.canvasCtx.strokeStyle = 'rgba(254, 67, 101, 0.8)';
+    this.canvasCtx.beginPath();
+    this.canvasCtx.lineWidth = this.lineWidth;
 
-      this.r = this.sceneService.radius - (this.innerDelta + this.lineWidth / 2);
-      this.context.arc(
-              this.sceneService.radius + this.sceneService.padding,
-              this.sceneService.radius + this.sceneService.padding,
-              this.r, 0, this.angle, false
-      );
-      this.context.stroke();
-      this.context.restore();
+    this.r = this.radius - (this.innerDelta + this.lineWidth / 2);
+
+    this.canvasCtx.arc(this.radius + this.padding, this.radius + this.padding, this.r, 0, this.angle, false);
+    this.canvasCtx.stroke();
+    this.canvasCtx.restore();
   }
 
-  calculateAngle(e, animatedInProgress) {
-      this.animatedInProgress = animatedInProgress;
-      this.mx = e.pageX;
-      this.my = e.pageY;
-      this.angle = Math.atan((this.my - this.sceneService.cy - this.sceneService.coord.top) / (this.mx - this.sceneService.cx - this.sceneService.coord.left));
-      if (this.mx < this.sceneService.cx + this.sceneService.coord.left) {
-          this.angle = Math.PI + this.angle;
-      }
-      if (this.angle < 0) {
-          this.angle += 2 * Math.PI;
-      }
-      if (animatedInProgress) {
-          this.startAnimation();
-      } else {
-          this.prevAngle = this.angle;
-      }
+  calculateAngle(e: MouseEvent, animatedInProgress: boolean) {
+    this.animatedInProgress = animatedInProgress;
+
+    const mx = e.pageX;
+    const my = e.pageY;
+
+    this.angle = Math.atan((my - this.cy - this.coord.top) / (mx - this.cx - this.coord.left));
+
+    if (mx < this.cx + this.coord.left) {
+      this.angle = Math.PI + this.angle;
+    }
+    if (this.angle < 0) {
+      this.angle += 2 * Math.PI;
+    }
+    if (animatedInProgress) {
+      this.startAnimation();
+    } else {
+      this.prevAngle = this.angle;
+    }
   }
 
   startAnimation() {
-      var that = this;
-      const angle = this.angle;
-      const l = Math.abs(this.angle) - Math.abs(this.prevAngle);
-      const step = l / this.animationCount;
-      let i = 0;
-      const f = function () {
-          that.angle += step;
-          if (++i === that.animationCount) {
-              that.angle = angle;
-              that.prevAngle = angle;
-              that.animatedInProgress = false;
-          } else {
-              that.animateId = setTimeout(f, 20);
-          }
-      };
+    const angle = this.angle;
+    const l = Math.abs(this.angle) - Math.abs(this.prevAngle);
+    const step = l / this.animationCount;
+    let i = 0;
+    const f = () => {
+      this.angle += step;
+      if (++i === this.animationCount) {
+        this.angle = angle;
+        this.prevAngle = angle;
+        this.animatedInProgress = false;
+      } else {
+        this.animateId = setTimeout(f, 20);
+      }
+    };
 
-      this.angle = this.prevAngle;
-      this.animateId = setTimeout(f, 20);
+    this.angle = this.prevAngle;
+    this.animateId = setTimeout(f, 20);
   }
 
   stopAnimation() {
-      clearTimeout(this.animateId);
-      this.animatedInProgress = false;
+    clearTimeout(this.animateId);
+    this.animatedInProgress = false;
   }
 }

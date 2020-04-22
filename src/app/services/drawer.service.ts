@@ -38,17 +38,19 @@ export class DrawerService {
     this.context.restore();
   }
 
-  drawTick(x1, y1, x2, y2) {
-    const dx1 = parseInt(this.scene.cx + x1);
-    const dy1 = parseInt(this.scene.cy + y1);
+  drawTick(x1: number, y1: number, x2: number, y2: number) {
+    const dx1 = parseInt(this.scene.cx + x1, 10);
+    const dy1 = parseInt(this.scene.cy + y1, 10);
 
-    const dx2 = parseInt(this.scene.cx + x2);
-    const dy2 = parseInt(this.scene.cy + y2);
+    const dx2 = parseInt(this.scene.cx + x2, 10);
+    const dy2 = parseInt(this.scene.cy + y2, 10);
 
     const gradient = this.context.createLinearGradient(dx1, dy1, dx2, dy2);
+
     gradient.addColorStop(0, '#FE4365');
     gradient.addColorStop(0.6, '#FE4365');
     gradient.addColorStop(1, '#F5F5F5');
+
     this.context.beginPath();
     this.context.strokeStyle = gradient;
     this.context.lineWidth = 2;

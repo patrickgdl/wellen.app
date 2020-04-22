@@ -1,75 +1,33 @@
 import { Injectable } from '@angular/core';
 
 import { PlayerService } from './player.service';
-import { SceneService } from './scene.service';
 import { TrackerService } from './tracker.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ControlsService {
-  playing: false;
+  constructor(private trackerService: TrackerService, private playerService: PlayerService) {}
 
-  constructor(private playerService: PlayerService, private trackerService: TrackerService, private sceneService: SceneService) {}
-
-  init(scene) {
-    this.sceneService = scene;
-    this.context = scene.context;
-    this.initHandlers();
-    this.timeControl = document.querySelector('.time');
-  }
-
-  initHandlers() {
-    this.initTimeHandler();
-  }
-
-  play() {
-    this.playerService.play();
-    that.playing = true;
-  }
-
-  pause() {
-    this.playerService.pause();
-    that.playing = false;
-  }
-
-  mute() {
-    this.playerService.mute();
-  }
-
-  unmute() {
-    this.playerService.unmute();
-  }
-
-  prevTrack() {
-    this.playerService.prevTrack();
-    this.playing && this.playerService.play();
-  }
-
-  nextTrack() {
-    this.playerService.nextTrack();
-    this.playing && this.playerService.play();
-  }
-
-  initTimeHandler() {
-    var that = this;
-    setTimeout(function () {
-      const rawTime = parseInt(this.player.context.currentTime || 0);
+  initTimeHandler(timeEl: HTMLDivElement) {
+    setTimeout(() => {
+      const rawTime = this.playerService.audioCtx.currentTime || 0;
       const secondsInMin = 60;
-      let min = parseInt(rawTime / secondsInMin);
-      let seconds = rawTime - min * secondsInMin;
 
-      if (min < 10) {
-        min = '0' + min;
+      let minutes: number | string = rawTime / secondsInMin;
+      let seconds: number | string = rawTime - minutes * secondsInMin;
+
+      if (minutes < 10) {
+        minutes = '0' + minutes;
       }
       if (seconds < 10) {
         seconds = '0' + seconds;
       }
 
-      const time = min + ':' + seconds;
+      const time = minutes + ':' + seconds;
 
-      that.timeControl.textContent = time;
-      that.initTimeHandler();
+      timeEl.textContent = time;
+      this.initTimeHandler();
     }, 300);
   }
 
@@ -78,10 +36,10 @@ export class ControlsService {
   }
 
   drawPic() {
-    this.context.save();
-    this.context.beginPath();
-    this.context.fillStyle = 'rgba(254, 67, 101, 0.85)';
-    this.context.lineWidth = 1;
+    this.canvasCtx.save();
+    this.canvasCtx.beginPath();
+    this.canvasCtx.fillStyle = 'rgba(254, 67, 101, 0.85)';
+    this.canvasCtx.lineWidth = 1;
 
     let x = this.trackerService.r / Math.sqrt(Math.pow(Math.tan(this.trackerService.angle), 2) + 1);
     let y = Math.sqrt(this.trackerService.r * this.trackerService.r - x * x);
@@ -97,17 +55,17 @@ export class ControlsService {
       y = -y;
     }
 
-    this.context.arc(
-      this.sceneService.radius + this.sceneService.padding + x,
-      this.sceneService.radius + this.sceneService.padding + y,
+    this.canvasCtx.arc(
+      this.radius + this.padding + x,
+      this.radius + this.padding + y,
       10,
       0,
       Math.PI * 2,
       false
     );
 
-    this.context.fill();
-    this.context.restore();
+    this.canvasCtx.fill();
+    this.canvasCtx.restore();
   }
 
   getQuadrant() {

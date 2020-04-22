@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 import { DrawerService } from './drawer.service';
-import { SceneService } from './scene.service';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +23,7 @@ export class PlayerService {
   destination: AudioDestinationNode;
   gainNode: GainNode;
 
-  constructor(private http: HttpClient, private drawerService: DrawerService, private sceneService: SceneService) {}
+  constructor(private http: HttpClient, private drawerService: DrawerService) {}
 
   init() {
     this.audioCtx = new AudioContext();
@@ -58,7 +57,6 @@ export class PlayerService {
     }
 
     this.drawerService.setLoadingPercent(1);
-    this.sceneService.init();
   }
 
   loadTrack(index: number) {
