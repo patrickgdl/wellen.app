@@ -96,7 +96,7 @@ export class DrawerService {
     let y1: number;
     let x2: number;
     let y2: number;
-    let m = [];
+    const m = [];
     let tick: {x: number, y: number, angle: number};
     let k: number;
     const lesser = 160;
@@ -121,7 +121,7 @@ export class DrawerService {
       x2 = x1 * k;
       y2 = y1 * k;
 
-      m.push({ x1: x1, y1: y1, x2: x2, y2: y2 });
+      m.push({ x1, y1, x2, y2 });
 
       if (i < 20) {
         let scale = delta / 50;
