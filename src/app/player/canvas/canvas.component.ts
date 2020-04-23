@@ -5,8 +5,7 @@ import { PlayerService } from '../../services/player.service';
 
 @Component({
   selector: 'wel-canvas',
-  template: `<canvas #canvas></canvas>`,
-  styles: [],
+  template: `<canvas #canvas></canvas>`
 })
 export class CanvasComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas', { static: false }) public canvas: ElementRef;
@@ -15,9 +14,6 @@ export class CanvasComponent implements OnInit, AfterViewInit {
     private playerService: PlayerService,
     private sceneService: SceneService
   ) {
-    playerService.canvasEl$.subscribe(el => {
-      console.log(el);
-    });
   }
 
   ngOnInit() {}

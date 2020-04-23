@@ -32,7 +32,6 @@ export class SceneService {
 
   constructor(private playerService: PlayerService) {
     playerService.canvasEl$.subscribe(el => {
-      console.log(el);
       this.canvasConfigure(el);
     });
   }
