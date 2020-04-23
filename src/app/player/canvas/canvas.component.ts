@@ -1,3 +1,4 @@
+import { SceneService } from './../../services/scene.service';
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
 import { PlayerService } from '../../services/player.service';
@@ -11,8 +12,13 @@ export class CanvasComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas', { static: false }) public canvas: ElementRef;
 
   constructor(
-    private playerService: PlayerService
-  ) {}
+    private playerService: PlayerService,
+    private sceneService: SceneService
+  ) {
+    playerService.canvasEl$.subscribe(el => {
+      console.log(el);
+    });
+  }
 
   ngOnInit() {}
 
@@ -21,11 +27,4 @@ export class CanvasComponent implements OnInit, AfterViewInit {
 
     this.playerService.init(canvasEl);
   }
-
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event) {
-  //   this.canvasConfigure();
-  //   this.drawerService.configure();
-  //   this.render();
-  //
 }

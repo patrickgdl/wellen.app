@@ -14,6 +14,6 @@ import { PlayerComponent } from './player.component';
 @NgModule({
   declarations: [PlayerComponent, CanvasComponent, ControlsComponent],
   imports: [CommonModule, PlayerRoutingModule],
-  providers: [PlayerService, TrackerService, SceneService, ControlsService, DrawerService],
+  providers: [TrackerService, ControlsService, DrawerService, PlayerService, SceneService],
 })
 export class PlayerModule {}

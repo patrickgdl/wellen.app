@@ -1,33 +1,45 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
-import { ControlsService } from './controls.service';
-import { DrawerService } from './drawer.service';
-import { TrackerService } from './tracker.service';
+import { PlayerService } from './player.service';
 
 @Injectable()
 export class SceneService {
-  private inProcess = false;
+  private canvasCtx: CanvasRenderingContext2D;
+  private canvasEl: HTMLCanvasElement;
 
-  canvasCtx: CanvasRenderingContext2D;
+  // Observable canvas context and element source
+  private canvasElSource = new Subject<HTMLCanvasElement>();
+  private canvasCtxSource = new Subject<CanvasRenderingContext2D>();
 
+  // Observable canvas context and element stream
+  canvasEl$ = this.canvasElSource.asObservable();
+  canvasCtx$ = this.canvasCtxSource.asObservable();
+
+  inProcess = false;
+  innerDelta = 20;
+  lineWidth = 7;
   width: number;
   height: number;
   padding = 120;
   minSize = 740;
-  optimiseHeight: 982;
+  optimiseHeight = 982;
   scaleCoef: number;
   radius: number;
   cx: number;
   cy: number;
   coord: DOMRect;
 
-  constructor(private drawerService: DrawerService, private trackerService: TrackerService, private controlsService: ControlsService) {}
-
-  init(canvasEl: HTMLCanvasElement) {
-    this.canvasConfigure(canvasEl);
+  constructor(private playerService: PlayerService) {
+    playerService.canvasEl$.subscribe(el => {
+      console.log(el);
+      this.canvasConfigure(el);
+    });
   }
 
   canvasConfigure(canvasEl: HTMLCanvasElement) {
+    console.log(canvasEl);
+    this.canvasEl = canvasEl;
     this.canvasCtx = canvasEl.getContext('2d');
     this.canvasCtx.strokeStyle = '#FE4365';
 
@@ -57,6 +69,7 @@ export class SceneService {
     requestAnimationFrame(() => {
       this.clear();
       this.draw();
+      this.playerService.analyser.getByteFrequencyData(this.playerService.frequencyData);
       if (this.inProcess) {
         this.render();
       }
@@ -68,7 +81,8 @@ export class SceneService {
   }
 
   draw() {
-    this.drawerService.draw();
+    this.canvasElSource.next(this.canvasEl);
+    this.canvasCtxSource.next(this.canvasCtx);
     // this.trackerService.draw();
     // this.controlsService.draw();
   }

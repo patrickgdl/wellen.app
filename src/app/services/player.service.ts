@@ -1,11 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
-import { DrawerService } from './drawer.service';
-import { SceneService } from './scene.service';
+const FFT_SIZE = 2048;
 
 @Injectable()
 export class PlayerService {
+  // Observable canvas element source
+  private canvasElSource = new Subject<HTMLCanvasElement>();
+
   tracks = [
     {
       artist: 'SAINt JHN & Imanbek Remix',
@@ -13,53 +16,85 @@ export class PlayerService {
       url: '../../assets/audio/roses.mp3',
     },
   ];
-  firstLaunch = false;
-
+  firstLaunch = true;
   audioCtx: AudioContext;
-  javascriptNode: ScriptProcessorNode;
   analyser: AnalyserNode;
-  source: AudioBufferSourceNode;
-  destination: AudioDestinationNode;
+  sourceNode: AudioBufferSourceNode;
   gainNode: GainNode;
+  frequencyData: Uint8Array;
 
-  constructor(private http: HttpClient, private drawerService: DrawerService, private sceneService: SceneService) {}
+  constructor(private http: HttpClient) {}
 
+  /**
+   * Init audio api fn instances.
+   */
   init(canvasEl: HTMLCanvasElement) {
-    this.audioCtx = new AudioContext();
-    // this.context.suspend && this.context.suspend();
-    this.firstLaunch = true;
+    this.setContext();
+    this.setAnalyser();
+    this.setFrequencyData();
+    this.setBufferSourceNode();
+    this.setGainNode();
 
-    try {
-      this.javascriptNode = this.audioCtx.createScriptProcessor(2048, 1, 1);
-      this.javascriptNode.connect(this.audioCtx.destination);
+    this.loadTrack(0);
 
-      this.analyser = this.audioCtx.createAnalyser();
-      this.analyser.connect(this.javascriptNode);
-      this.analyser.smoothingTimeConstant = 0.6;
-      this.analyser.fftSize = 2048;
-
-      this.source = this.audioCtx.createBufferSource();
-      this.destination = this.audioCtx.destination;
-
-      this.loadTrack(0);
-
-      this.gainNode = this.audioCtx.createGain();
-
-      this.source.connect(this.gainNode);
-
-      this.gainNode.connect(this.analyser);
-      this.gainNode.connect(this.destination);
-
-      this.initHandlers();
-    } catch (e) {
-      // this.drawerService.setLoadingPercent(1);
-    }
-
-    // this.drawerService.setLoadingPercent(1);
-
-    this.sceneService.init(canvasEl);
+    this.canvasElSource.next(canvasEl);
   }
 
+  /**
+   *  Observable canvas element stream
+   */
+  get canvasEl$() {
+    return this.canvasElSource.asObservable();
+  }
+
+  /**
+   * Set current audio context.
+   */
+  setContext() {
+    try {
+      this.audioCtx = new AudioContext();
+    } catch (e) {
+      console.log('Web Audio API is not supported.', e);
+    }
+  }
+
+  /**
+   * Set buffer analyser.
+   */
+  setAnalyser() {
+    this.analyser = this.audioCtx.createAnalyser();
+    this.analyser.smoothingTimeConstant = 0.6;
+    this.analyser.fftSize = FFT_SIZE;
+  }
+
+  /**
+   * Set frequency data.
+   */
+  setFrequencyData() {
+    this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+  }
+
+  /**
+   * Set source buffer.
+   */
+  setBufferSourceNode() {
+    this.sourceNode = this.audioCtx.createBufferSource();
+    this.sourceNode.loop = false; // loop property
+  }
+
+  /**
+   * Set gain source and connect processor and analyser.
+   */
+  setGainNode() {
+    this.gainNode = this.audioCtx.createGain();
+    this.sourceNode.connect(this.gainNode);
+    this.gainNode.connect(this.analyser);
+    this.gainNode.connect(this.audioCtx.destination);
+  }
+
+  /**
+   * Load track music from a specified index.
+   */
   loadTrack(index: number) {
     const track = this.tracks[index];
     document.querySelector('.song .artist').textContent = track.artist;
@@ -69,7 +104,7 @@ export class PlayerService {
       this.audioCtx
         .decodeAudioData(response)
         .then((audioBuff) => {
-          this.source.buffer = audioBuff;
+          this.sourceNode.buffer = audioBuff;
         })
         .catch((error) => {
           this.onError(error);
@@ -105,10 +140,10 @@ export class PlayerService {
   }
 
   play() {
-    // this.audioCtx.resume && this.audioCtx.resume();
+    this.audioCtx.resume();
 
     if (this.firstLaunch) {
-      this.source.start();
+      this.sourceNode.start();
       this.firstLaunch = false;
     }
   }
@@ -128,12 +163,5 @@ export class PlayerService {
 
   unmute() {
     this.gainNode.gain.value = 1;
-  }
-
-  initHandlers() {
-    this.javascriptNode.onaudioprocess = () => {
-      this.drawerService.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
-      this.analyser.getByteFrequencyData(this.drawerService.frequencyData);
-    };
   }
 }

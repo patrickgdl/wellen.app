@@ -1,19 +1,26 @@
 import { Injectable } from '@angular/core';
 
+import { PlayerService } from './player.service';
 import { SceneService } from './scene.service';
-import { TrackerService } from './tracker.service';
 
 @Injectable()
 export class DrawerService {
+  private canvasCtx: CanvasRenderingContext2D;
+
   countTicks = 360;
   maxTickSize: number;
-  frequencyData: Uint8Array;
   tickSize = 10;
   PI = 360;
   index = 0;
   loadingAngle = 0;
 
-  constructor(private sceneService: SceneService, private trackerService: TrackerService) {}
+  constructor(private sceneService: SceneService, private playerService: PlayerService) {
+    sceneService.canvasCtx$.subscribe((ctx) => {
+      this.canvasCtx = ctx;
+      this.setLoadingPercent(1);
+      this.draw();
+    });
+  }
 
   configure() {
     this.maxTickSize = this.tickSize * 9 * this.sceneService.scaleCoef;
@@ -21,22 +28,24 @@ export class DrawerService {
   }
 
   draw() {
+    this.configure();
     this.drawTicks();
     this.drawEdging();
   }
 
   drawTicks() {
-    this.sceneService.canvasCtx.save();
-    this.sceneService.canvasCtx.beginPath();
-    this.sceneService.canvasCtx.lineWidth = 1;
+    this.canvasCtx.save();
+    this.canvasCtx.beginPath();
+    this.canvasCtx.lineWidth = 1;
 
     const ticks = this.getTicks(this.countTicks, this.tickSize, [0, 90]);
+
     for (let i = 0, len = ticks.length; i < len; ++i) {
       const tick = ticks[i];
       this.drawTick(tick.x1, tick.y1, tick.x2, tick.y2);
     }
 
-    this.sceneService.canvasCtx.restore();
+    this.canvasCtx.restore();
   }
 
   drawTick(x1: number, y1: number, x2: number, y2: number) {
@@ -46,18 +55,18 @@ export class DrawerService {
     const dx2 = this.sceneService.cx + x2;
     const dy2 = this.sceneService.cy + y2;
 
-    const gradient = this.sceneService.canvasCtx.createLinearGradient(dx1, dy1, dx2, dy2);
+    const gradient = this.canvasCtx.createLinearGradient(dx1, dy1, dx2, dy2);
 
     gradient.addColorStop(0, '#FE4365');
     gradient.addColorStop(0.6, '#FE4365');
     gradient.addColorStop(1, '#F5F5F5');
 
-    this.sceneService.canvasCtx.beginPath();
-    this.sceneService.canvasCtx.strokeStyle = gradient;
-    this.sceneService.canvasCtx.lineWidth = 2;
-    this.sceneService.canvasCtx.moveTo(this.sceneService.cx + x1, this.sceneService.cx + y1);
-    this.sceneService.canvasCtx.lineTo(this.sceneService.cx + x2, this.sceneService.cx + y2);
-    this.sceneService.canvasCtx.stroke();
+    this.canvasCtx.beginPath();
+    this.canvasCtx.strokeStyle = gradient;
+    this.canvasCtx.lineWidth = 2;
+    this.canvasCtx.moveTo(this.sceneService.cx + x1, this.sceneService.cx + y1);
+    this.canvasCtx.lineTo(this.sceneService.cx + x2, this.sceneService.cx + y2);
+    this.canvasCtx.stroke();
   }
 
   setLoadingPercent(percent: number) {
@@ -65,28 +74,28 @@ export class DrawerService {
   }
 
   drawEdging() {
-    this.sceneService.canvasCtx.save();
-    this.sceneService.canvasCtx.beginPath();
-    this.sceneService.canvasCtx.strokeStyle = 'rgba(254, 67, 101, 0.5)';
-    this.sceneService.canvasCtx.lineWidth = 1;
+    this.canvasCtx.save();
+    this.canvasCtx.beginPath();
+    this.canvasCtx.strokeStyle = 'rgba(254, 67, 101, 0.5)';
+    this.canvasCtx.lineWidth = 1;
 
-    const offset = this.trackerService.lineWidth / 2;
-    this.sceneService.canvasCtx.moveTo(
-      this.sceneService.padding + 2 * this.sceneService.radius - this.trackerService.innerDelta - offset,
+    const offset = this.sceneService.lineWidth / 2;
+    this.canvasCtx.moveTo(
+      this.sceneService.padding + 2 * this.sceneService.radius - this.sceneService.innerDelta - offset,
       this.sceneService.padding + this.sceneService.radius
     );
 
-    this.sceneService.canvasCtx.arc(
+    this.canvasCtx.arc(
       this.sceneService.cx,
       this.sceneService.cy,
-      this.sceneService.radius - this.trackerService.innerDelta - offset,
+      this.sceneService.radius - this.sceneService.innerDelta - offset,
       0,
       this.loadingAngle,
       false
     );
 
-    this.sceneService.canvasCtx.stroke();
-    this.sceneService.canvasCtx.restore();
+    this.canvasCtx.stroke();
+    this.canvasCtx.restore();
   }
 
   getTicks(count: number, size: number, animationParams: number[]) {
@@ -97,14 +106,15 @@ export class DrawerService {
     let x2: number;
     let y2: number;
     const m = [];
-    let tick: {x: number, y: number, angle: number};
+    let tick: { x: number; y: number; angle: number };
     let k: number;
     const lesser = 160;
     const allScales = [];
 
     for (let i = 0, len = ticks.length; i < len; ++i) {
       const coef = 1 - i / (len * 2.5);
-      let delta = ((this.frequencyData[i] || 0) - lesser * coef) * this.sceneService.scaleCoef;
+      let delta = ((this.playerService.frequencyData[i] || 0) - lesser * coef) * this.sceneService.scaleCoef;
+
       if (delta < 0) {
         delta = 0;
       }
@@ -131,7 +141,8 @@ export class DrawerService {
     }
     const sum = allScales.reduce((pv, cv) => pv + cv, 0) / allScales.length;
 
-    // this.canvas.style.transform = `scale(${sum})`;
+    const canvas = document.querySelector('canvas');
+    canvas.style.transform = `scale(${sum})`;
 
     return m;
   }
@@ -162,7 +173,7 @@ export class DrawerService {
   }
 
   getTickPoints(count: number) {
-    const coords: {x: number, y: number, angle: number}[] = [];
+    const coords: { x: number; y: number; angle: number }[] = [];
     const step = this.PI / count;
 
     for (let deg = 0; deg < this.PI; deg += step) {

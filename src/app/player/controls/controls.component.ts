@@ -8,7 +8,7 @@ import { PlayerService } from '../../services/player.service';
   styles: [],
 })
 export class ControlsComponent implements AfterViewInit {
-  @ViewChild('time') public time: ElementRef;
+ //  @ViewChild('time') public time: ElementRef;
 
   isPlaying = false;
   isMuted = false;
@@ -16,7 +16,7 @@ export class ControlsComponent implements AfterViewInit {
   constructor(private playerService: PlayerService) {}
 
   ngAfterViewInit() {
-    const timeEl: HTMLDivElement = this.time.nativeElement;
+    // const timeEl: HTMLDivElement = this.time.nativeElement;
   }
 
   onPlay() {
