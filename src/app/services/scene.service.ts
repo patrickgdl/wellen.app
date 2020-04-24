@@ -37,7 +37,6 @@ export class SceneService {
   }
 
   canvasConfigure(canvasEl: HTMLCanvasElement) {
-    console.log(canvasEl);
     this.canvasEl = canvasEl;
     this.canvasCtx = canvasEl.getContext('2d');
     this.canvasCtx.strokeStyle = '#FE4365';

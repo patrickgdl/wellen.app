@@ -1,4 +1,3 @@
-import { SceneService } from './../../services/scene.service';
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
 import { PlayerService } from '../../services/player.service';
@@ -11,8 +10,7 @@ export class CanvasComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas', { static: false }) public canvas: ElementRef;
 
   constructor(
-    private playerService: PlayerService,
-    private sceneService: SceneService
+    private playerService: PlayerService
   ) {
   }
 

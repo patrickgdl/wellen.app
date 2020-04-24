@@ -11,11 +11,12 @@ export class ControlsService {
     trackerService.canvasCtx$.subscribe((ctx) => {
       this.canvasCtx = ctx;
       this.draw();
+      // this.initTimeHandler();
     });
   }
 
   initTimeHandler() {
-    setTimeout(() => {
+    window.setTimeout(() => {
       const rawTime = this.playerService.audioCtx.currentTime || 0;
       const secondsInMin = 60;
 
@@ -32,6 +33,7 @@ export class ControlsService {
       const time = minutes + ':' + seconds;
 
       const timeEl = document.getElementById('time');
+      console.log(time);
       timeEl.textContent = time;
 
       this.initTimeHandler();
